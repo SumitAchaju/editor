@@ -25,7 +25,39 @@ export const useReactEditorTool = (
     }
 
     render() {
-      const EnhancedWrapper = () => {
+      const Wrapper = this.ReactWrapper(Component);
+      this.root.render(React.createElement(Wrapper));
+      return this.wrapper;
+    }
+
+    updateData(newData: any) {
+      this.data = { ...this.data, ...newData };
+      if (this.updateTrigger) {
+        this.updateTrigger(this.data);
+      }
+    }
+
+    save() {
+      return this.data;
+    }
+
+    destroy() {
+      if (this.root) {
+        this.updateTrigger = null;
+        this.root.unmount();
+      }
+    }
+
+    static get sanitize() {
+      return toolConfig.sanitize || {};
+    }
+
+    static get isReadOnlySupported() {
+      return true;
+    }
+
+    ReactWrapper(ReactComponent: React.ComponentType<any>) {
+      return () => {
         const [currentData, setCurrentData] = useState(this.data);
         const [error, setError] = useState<string | null>(null);
 
@@ -78,40 +110,11 @@ export const useReactEditorTool = (
           );
         }
 
-        return React.createElement(Component, {
+        return React.createElement(ReactComponent, {
           data: currentData,
           onChange: handleChange,
         });
       };
-
-      this.root.render(React.createElement(EnhancedWrapper));
-      return this.wrapper;
-    }
-
-    updateData(newData: any) {
-      this.data = { ...this.data, ...newData };
-      if (this.updateTrigger) {
-        this.updateTrigger(this.data);
-      }
-    }
-
-    save() {
-      return this.data;
-    }
-
-    destroy() {
-      if (this.root) {
-        this.updateTrigger = null;
-        this.root.unmount();
-      }
-    }
-
-    static get sanitize() {
-      return toolConfig.sanitize || {};
-    }
-
-    static get isReadOnlySupported() {
-      return true;
     }
   };
 };
